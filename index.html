@@ -38,7 +38,33 @@ box-shadow:0 8px 32px rgba(0,0,0,0.3);
 h1{text-align:center;}
 .subtitle{text-align:center;color:#ddd;margin-bottom:20px;}
 
-/* ✅ SOLID TEXTBOX (no transparency) */
+/* File Upload */
+.file-upload{
+display:flex;
+align-items:center;
+gap:10px;
+margin-bottom:15px;
+}
+
+.file-upload input{
+display:none;
+}
+
+.file-label{
+background: linear-gradient(135deg,#36d1dc,#5b86e5);
+padding:10px 18px;
+border-radius:8px;
+cursor:pointer;
+color:white;
+font-weight:bold;
+}
+
+.file-name{
+font-size:14px;
+color:#eee;
+}
+
+/* Textarea */
 textarea{
 width:100%;
 height:180px;
@@ -51,7 +77,7 @@ background:white;
 color:black;
 }
 
-/* ✅ BRIGHT BUTTONS */
+/* Buttons */
 button{
 width:100%;
 padding:12px;
@@ -71,15 +97,13 @@ transform:translateY(-2px);
 box-shadow:0 8px 20px rgba(0,0,0,0.3);
 }
 
-button:disabled{
-opacity:0.6;
-cursor:not-allowed;
+.copy{
+background: linear-gradient(135deg,#00c853,#00e676);
 }
 
 /* Output */
 .output{margin-top:25px;}
 
-/* ✅ WHITE SUMMARY BG */
 .output p{
 background:white;
 color:black;
@@ -88,25 +112,7 @@ border-radius:10px;
 min-height:80px;
 }
 
-/* Copy button */
-.copy{
-background: linear-gradient(135deg,#00c853,#00e676);
-}
-
-.copy:hover{
-background:#00b248;
-}
-
-/* Copied msg */
-.copied{
-margin-top:8px;
-color:#00ff66;
-font-size:14px;
-display:none;
-text-align:center;
-}
-
-/* ⏳ Loading Spinner */
+/* Loader */
 .loader{
 display:none;
 margin:15px auto;
@@ -122,272 +128,11 @@ animation:spin 1s linear infinite;
 100%{transform:rotate(360deg);}
 }
 
-/* File input */
-input[type="file"]{
-margin-bottom:15px;
-color:white;
-}
-</style>
-</head>
-
-<body>
-
-<div class="container">
-<h1>📄 AI Notes Summarizer</h1>
-<p class="subtitle">Summarize text or upload PDF</p>
-
-<input type="file" id="pdfUpload" accept="application/pdf">
-
-<textarea id="inputText" placeholder="Paste notes or upload PDF..."></textarea>
-
-<button id="sumBtn" onclick="summarize()">Summarize</button>
-
-<div class="loader" id="loader"></div>
-
-<div class="output">
-<h2>Summary</h2>
-<p id="outputText">Your summary will appear here...</p>
-<button class="copy" onclick="copyText()">Copy Text</button>
-<p class="copied" id="copiedMsg">✔ Copied to clipboard</p>
-</div>
-</div>
-
-<script>
-/* PDF Upload */
-document.getElementById("pdfUpload").addEventListener("change", async function(e){
-const file=e.target.files[0];
-if(!file) return;
-
-const reader=new FileReader();
-reader.onload=async function(){
-const typedarray=new Uint8Array(this.result);
-const pdf=await pdfjsLib.getDocument(typedarray).promise;
-let text="";
-
-for(let i=1;i<=pdf.numPages;i++){
-const page=await pdf.getPage(i);
-const content=await page.getTextContent();
-content.items.forEach(item=>text+=item.str+" ");
-}
-document.getElementById("inputText").value=text;
-};
-reader.readAsArrayBuffer(file);
-});
-
-/* Summarize */
-async function summarize(){
-const text=document.getElementById("inputText").value;
-if(text.trim()===""){
-alert("Please enter or upload text!");
-return;
-}
-
-const btn=document.getElementById("sumBtn");
-const loader=document.getElementById("loader");
-
-btn.disabled=true;
-loader.style.display="block";
-document.getElementById("outputText").innerText="";
-
-try{
-const response=await fetch("http://127.0.0.1:5000/summarize",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({text})
-});
-
-const data=await response.json();
-document.getElementById("outputText").innerText=data.summary;
-
-}catch{
-document.getElementById("outputText").innerText="❌ Backend not connected!";
-}
-
-loader.style.display="none";
-btn.disabled=false;
-}
-
-/* Copy */
-function copyText(){
-navigator.clipboard.writeText(
-document.getElementById("outputText").innerText
-);
-const msg=document.getElementById("copiedMsg");
-msg.style.display="block";
-setTimeout(()=>msg.style.display="none",1500);
-}
-</script>
-
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Notes Summarizer</title>
-
-<!-- PDF.js CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-
-<style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial, sans-serif;
-}
-
-body{
-background: linear-gradient(120deg,#1e3c72,#2a5298);
-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-}
-
-/* 🌟 Glass Blur Container */
-.container{
-background: rgba(255,255,255,0.15);
-backdrop-filter: blur(18px);
-border: 1px solid rgba(255,255,255,0.2);
-width:90%;
-max-width:700px;
-padding:30px;
-border-radius:16px;
-box-shadow:0 8px 32px rgba(0,0,0,0.3);
-color:white;
-}
-
-h1{
-text-align:center;
-margin-bottom:10px;
-}
-
-.subtitle{
-text-align:center;
-color:#e0e0e0;
-margin-bottom:20px;
-}
-
-/* 🌟 Styled File Upload */
-.file-upload{
-display:flex;
-align-items:center;
-gap:10px;
-margin-bottom:15px;
-}
-
-.file-upload input[type="file"]{
-display:none;
-}
-
-.file-label{
-background: linear-gradient(135deg,#36d1dc,#5b86e5);
-padding:10px 18px;
-border-radius:8px;
-cursor:pointer;
-color:white;
-font-weight:bold;
-transition:0.3s;
-}
-
-.file-label:hover{
-transform:translateY(-2px);
-box-shadow:0 6px 15px rgba(0,0,0,0.3);
-}
-
-.file-name{
-font-size:14px;
-color:#eee;
-}
-
-/* Textarea */
-textarea{
-width:100%;
-height:180px;
-padding:15px;
-border-radius:10px;
-border:1px solid #ccc;
-resize:none;
-font-size:15px;
-background:white;
-color:black;
-}
-
-textarea::placeholder{
-color:#666;
-}
-
-/* Buttons */
-button{
-width:100%;
-padding:12px;
-margin-top:15px;
-background: linear-gradient(90deg, #ff7a18, #ffb347);
-color:white;
-border:none;
-border-radius:10px;
-font-size:16px;
-cursor:pointer;
-transition: all 0.3s ease;
-box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-button:hover{
-transform: translateY(-2px);
-box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-filter: brightness(1.1);
-}
-
-button:active{
-transform: scale(0.96);
-}
-
-/* Output */
-.output{
-margin-top:25px;
-}
-
-.output p{
-background:white;
-padding:15px;
-border-radius:10px;
-min-height:80px;
-border:1px solid #ccc;
-color:#111;
-}
-
-/* Copy Button */
-.copy{
-margin-top:10px;
-background: linear-gradient(90deg, #00c853, #69f0ae);
-}
-
-/* Copied Message */
 .copied{
 margin-top:8px;
-color:#a8ffcb;
-font-size:14px;
+color:#00ff66;
 display:none;
 text-align:center;
-}
-
-/* Loader */
-.loader{
-margin:15px auto;
-width:40px;
-height:40px;
-border:4px solid #eee;
-border-top:4px solid #ff7a18;
-border-radius:50%;
-animation: spin 1s linear infinite;
-display:none;
-}
-
-@keyframes spin{
-0%{transform:rotate(0deg);} 
-100%{transform:rotate(360deg);} 
 }
 </style>
 </head>
@@ -407,12 +152,13 @@ display:none;
 
 <textarea id="inputText" placeholder="Paste notes or upload PDF..."></textarea>
 
-<button onclick="summarize()">Summarize</button>
+<button id="sumBtn" onclick="summarize()">Summarize</button>
+
+<div class="loader" id="loader"></div>
 
 <div class="output">
 <h2>Summary</h2>
 <p id="outputText">Your summary will appear here...</p>
-<div class="loader" id="loader"></div>
 <button class="copy" onclick="copyText()">Copy Text</button>
 <p class="copied" id="copiedMsg">✔ Copied to clipboard</p>
 </div>
@@ -420,85 +166,67 @@ display:none;
 </div>
 
 <script>
-
-/* -------- PDF Upload -------- */
 document.getElementById("pdfUpload").addEventListener("change", async function(e){
+const file=e.target.files[0];
 
-const file = e.target.files[0];
-const fileNameDisplay = document.getElementById("fileName");
-fileNameDisplay.textContent = file ? file.name : "No file chosen";
-
+document.getElementById("fileName").textContent=file?file.name:"No file chosen";
 if(!file) return;
 
-const reader = new FileReader();
+const reader=new FileReader();
+reader.onload=async function(){
+const typedarray=new Uint8Array(this.result);
+const pdf=await pdfjsLib.getDocument(typedarray).promise;
 
-reader.onload = async function(){
-const typedarray = new Uint8Array(this.result);
-
-const pdf = await pdfjsLib.getDocument(typedarray).promise;
-let text = "";
-
+let text="";
 for(let i=1;i<=pdf.numPages;i++){
-const page = await pdf.getPage(i);
-const content = await page.getTextContent();
-
-content.items.forEach(item=>{
-text += item.str + " ";
-});
+const page=await pdf.getPage(i);
+const content=await page.getTextContent();
+content.items.forEach(item=>text+=item.str+" ");
 }
-
-document.getElementById("inputText").value = text;
+document.getElementById("inputText").value=text;
 };
-
 reader.readAsArrayBuffer(file);
-
 });
 
-/* -------- Summarize -------- */
 async function summarize(){
+const text=document.getElementById("inputText").value;
+if(!text.trim()) return alert("Enter text");
 
-const text = document.getElementById("inputText").value;
+const btn=document.getElementById("sumBtn");
+const loader=document.getElementById("loader");
 
-if(!text.trim()){
-alert("Please enter or upload text!");
-return;
-}
-
-const output = document.getElementById("outputText");
-const loader = document.getElementById("loader");
-
-output.innerText = "";
-loader.style.display = "block";
+btn.disabled=true;
+loader.style.display="block";
+document.getElementById("outputText").innerText="";
 
 try{
-const response = await fetch("http://127.0.0.1:5000/summarize",{
+const response=await fetch("http://127.0.0.1:5000/summarize",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body: JSON.stringify({text:text})
+body:JSON.stringify({text})
 });
 
-const data = await response.json();
-output.innerText = data.summary;
-}
-catch(err){
-output.innerText = "Backend not connected!";
-}
-finally{
-loader.style.display = "none";
-}
+const data=await response.json();
+document.getElementById("outputText").innerText=data.summary;
+
+}catch{
+document.getElementById("outputText").innerText="Backend not connected!";
 }
 
-/* -------- Copy Text -------- */
+loader.style.display="none";
+btn.disabled=false;
+}
+
 function copyText(){
-const text = document.getElementById("outputText").innerText;
-if(!text) return;
+navigator.clipboard.writeText(
+document.getElementById("outputText").innerText
+);
 
-navigator.clipboard.writeText(text);
-const msg = document.getElementById("copiedMsg");
-msg.style.display = "block";
+const msg=document.getElementById("copiedMsg");
+msg.style.display="block";
 setTimeout(()=>msg.style.display="none",1500);
 }
-
 </script>
+
 </body>
 </html>
